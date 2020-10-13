@@ -1,6 +1,6 @@
 {
   "name": "@horos/resi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Resi Web API Package",
   "main": "dist/index.js",
   "scripts": {
