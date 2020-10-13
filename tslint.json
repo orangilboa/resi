@@ -1,6 +1,10 @@
 {
   "extends": ["tslint:recommended", "tslint-config-prettier"],
   "rules": {
-    "forin": false
+    "forin": false,
+    "no-console":false,
+    "only-arrow-functions": false,
+    "prefer-const": false,
+    "prefer-for-of": false
   }
 }

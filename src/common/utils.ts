@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
 import { AUTH_TOKEN_FIELD, ResiAPIImplementation } from './typesConsts';
 
-export function mergeOptions<T, TMerged=T>(options: T, defaultOptions: T) {
+export function mergeOptions<T, TMerged = T>(options: T, defaultOptions: T) {
   const finalOptions: any = !options
     ? defaultOptions
     : options === defaultOptions

@@ -6,12 +6,12 @@
   "scripts": {
     "build-old": "babel src -s -D -d dist",
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "example": "yarn build && node dist/example/index.js",
     "debug": "nodemon --inspect=5000 src/example/index.js --exec babel-node",
     "prepublish": "generate-export-aliases",
-    "prepublishOnly": "npm run format && npm run lint",
+    "prepublishOnly": "yarn format && yarn lint && yarn build",
     "tscw": "tsc --watch"
   },
   "repository": {

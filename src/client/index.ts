@@ -42,7 +42,7 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
       }
 
       apiImpl[funcName] = async function (...args: any[]) {
-        if (checkPlug(funcMetadata, PLUGS.withAuthorization)) {
+        if (checkPlug(funcMetadata, PLUGS.withAuthorization) || checkPlug(apiImpl, PLUGS.withAuthorization)) {
           // axiosConfig.headers.AUTHORIZATION =
           if (options.__token) {
             axiosConfig.headers = { Authorization: options.__token };

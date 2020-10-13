@@ -1,8 +1,13 @@
 export type PlugsMap = { [func: string]: { [plug: string]: boolean } };
 
 export class CreateFileMessage {
-  
-  constructor(filePath: string, fileContent: string | Buffer, dir: "models" | "APIs", plugsMap?: PlugsMap, apiName?: string) {
+  constructor(
+    filePath: string,
+    fileContent: string | Buffer,
+    dir: 'models' | 'APIs',
+    plugsMap?: PlugsMap,
+    apiName?: string,
+  ) {
     this.filePath = filePath;
     this.fileContent = fileContent;
     this.dir = dir;

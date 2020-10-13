@@ -74,7 +74,10 @@ function stripImports(content: string) {
   const stripped = content
     .split('\n')
     .filter((row) => {
-      const keep = (false === (row.includes('require') || row.includes('import'))) || row.includes('models') || (row.includes('@horos/resi') && false === row.includes('server'));
+      const keep =
+        false === (row.includes('require') || row.includes('import')) ||
+        row.includes('models') ||
+        (row.includes('@horos/resi') && false === row.includes('server'));
       if (!keep) {
         console.log('Stripping', { row });
       }

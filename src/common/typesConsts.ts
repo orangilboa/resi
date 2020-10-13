@@ -7,13 +7,12 @@ export type APIImplementation = {
   name: string;
 };
 
-export type ResiHandler = Function & {[key:string]: boolean | any, __params?: string[]}
+export type ResiHandler = Function & { [key: string]: boolean | any; __params?: string[] };
 
 export type ResiSecurityKeyType = 'privateKey' | 'publicKey' | 'secret';
 export type ResiSecurity = {
   [key in ResiSecurityKeyType]: Buffer;
 };
-
 
 export const API_DIRECTORY = 'apis';
 export const MODELS_DIRECTORY = 'models';

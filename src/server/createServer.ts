@@ -11,13 +11,9 @@ import { addAPIToRouter } from './mapAPIToRouter';
 import { enrich, streamResponse } from '../common/plugs';
 import { buildClientFileCommands } from './buildClient';
 import { BUILD_CLIENT_API } from '../common/clientBuildCommon';
-import {
-  ResiAPIImplementation,
-  ResiHandler,
-  ResiSecurity,
-  RESI_ROUTE,
-} from '../common/typesConsts';
+import { ResiAPIImplementation, ResiHandler, ResiSecurity, RESI_ROUTE } from '../common/typesConsts';
 import { serverRunningMessage } from './serverRunning';
+import { ResiToken } from './security/ResiToken';
 
 export const reqToLog = (req: Request) => ({
   headers: req.headers,
@@ -27,10 +23,12 @@ export const reqToLog = (req: Request) => ({
   accepted: req.accepted,
 });
 
-export type ResiContext = {
+export type ResiContext<TToken = ResiToken> = {
   req: Request;
   res: Response;
   writeStream?: (chunk: Buffer | string) => void;
+  token: TToken;
+  resiOptions: CreateServerOptions;
 };
 
 // Enable if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
@@ -120,7 +118,9 @@ const defaultOptions: CreateServerOptions = {
     privateKey: Buffer.from(''),
     secret: Buffer.from(''),
   },
-  async hookSetup(app: Express, router: Router) {},
+  async hookSetup(app: Express, router: Router) {
+    return;
+  },
   /**
    *
    * @param {import('express').Express} app
@@ -145,7 +145,9 @@ const defaultOptions: CreateServerOptions = {
     createSuccessAndErrorHandlers(app, options.logger);
   },
 
-  async hookStart(app, router, options) {},
+  async hookStart(app, router, options) {
+    return;
+  },
 
   start(app: Express, router: Router, options: CreateServerOptions): Promise<Server> {
     return new Promise((resolve, reject) => {
@@ -159,8 +161,10 @@ const defaultOptions: CreateServerOptions = {
       }
     });
   },
-  async hookSetRoutes(app, router, apiImplementation) { },
-  
+  async hookSetRoutes(app, router, apiImplementation) {
+    return;
+  },
+
   async setRoutes(app, router, apiImplementation, options) {
     await options.hookSetRoutes(app, router, apiImplementation, options);
     addAPIToRouter(router, apiImplementation, options);

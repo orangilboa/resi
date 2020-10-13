@@ -54,7 +54,6 @@ export function addAPIToRouter(
   const optionsFinal: AddAPIToRouterOptionsMerged = mergeOptions(options, defaultOptions);
   const publicKey = crypto.createPublicKey(optionsFinal.security.publicKey);
   const secret = crypto.createSecretKey(optionsFinal.security.secret);
-  optionsFinal.security.publicKey, optionsFinal.security.secret;
 
   const { logger } = optionsFinal;
 
@@ -62,7 +61,7 @@ export function addAPIToRouter(
   for (const apiName in resiAPIImplementation) {
     const api = resiAPIImplementation[apiName];
     if (checkPlug(api, PLUGS.withAuthorization) && optionsFinal.security) {
-      router.post(`/${api}`, makeAuthorizationMiddleware(publicKey, secret));
+      router.post(`/${apiName}`, makeAuthorizationMiddleware(publicKey, secret));
     }
     logger.debug('api', apiName);
     for (const { func, params } of iterateFunctionsAndParams(resiAPIImplementation[apiName])) {
@@ -70,7 +69,10 @@ export function addAPIToRouter(
       logger.debug('path', { api: apiName, func });
       const funcImpl = api[func] as ResiHandler;
       funcImpl.__params = params;
-      if (checkPlug(funcImpl, PLUGS.withAuthorization) && optionsFinal.security) {
+      if (
+        (checkPlug(funcImpl, PLUGS.withAuthorization) || checkPlug(api, PLUGS.withAuthorization)) &&
+        optionsFinal.security
+      ) {
         router.post(path, makeAuthorizationMiddleware(publicKey, secret));
       }
       router.post(path, function (req, res, next) {
