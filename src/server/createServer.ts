@@ -190,8 +190,9 @@ async function getPathsFromDir(dir: string) {
 }
 
 export async function createServerFromResiDir(
-  apisDirectory: string,
   modelsDirectory: string,
+  apisDirectory: string,
+  distDir = 'src',
   options = defaultOptions,
 ) {
   const apiFiles = await getPathsFromDir(apisDirectory);
@@ -199,7 +200,11 @@ export async function createServerFromResiDir(
   const resiAPIImplementation: ResiAPIImplementation = Object.assign(
     {},
     ...apiFiles.map((file) => {
-      const impl = require(file).default;
+      let filePath = file;
+      if (false === file.includes(distDir)) {
+        filePath = filePath.replace('src', distDir);
+      }
+      const impl = require(filePath).default;
       return { [impl.name]: impl };
     }),
   );
@@ -210,7 +215,7 @@ export async function createServerFromResiDir(
       // const context = getContext();
       if (context.writeStream) {
         const { writeStream } = context;
-        buildClientFileCommands(resiAPIImplementation, apiFiles, modelFiles, (createFileMessage) =>
+        buildClientFileCommands(resiAPIImplementation, apiFiles, distDir, modelFiles, (createFileMessage) =>
           writeStream(JSON.stringify(createFileMessage)),
         );
       } else throw new Error('No writeStream in Context!');

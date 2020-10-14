@@ -60,22 +60,23 @@ export function addAPIToRouter(
   // logger.log('apiImplementation', apiImplementation);
   for (const apiName in resiAPIImplementation) {
     const api = resiAPIImplementation[apiName];
-    if (checkPlug(api, PLUGS.withAuthorization) && optionsFinal.security) {
-      router.post(`/${apiName}`, makeAuthorizationMiddleware(publicKey, secret));
-    }
+    // if (checkPlug(api, PLUGS.withAuthorization) && optionsFinal.security) {
+    //   router.post(`/${apiName}`, makeAuthorizationMiddleware(publicKey, secret));
+    // }
     logger.debug('api', apiName);
     for (const { func, params } of iterateFunctionsAndParams(resiAPIImplementation[apiName])) {
       const path = '/' + apiName + '/' + func;
       logger.debug('path', { api: apiName, func });
       const funcImpl = api[func] as ResiHandler;
       funcImpl.__params = params;
+      const httpAction = checkPlug(funcImpl, PLUGS.httpGet) ? 'get' : 'post';
       if (
         (checkPlug(funcImpl, PLUGS.withAuthorization) || checkPlug(api, PLUGS.withAuthorization)) &&
         optionsFinal.security
       ) {
-        router.post(path, makeAuthorizationMiddleware(publicKey, secret));
+        router[httpAction](path, makeAuthorizationMiddleware(publicKey, secret));
       }
-      router.post(path, function (req, res, next) {
+      router[httpAction](path, function (req, res, next) {
         logger.debug('INCOMING', { path, body: req.body });
         const args = req.body.args || [];
 

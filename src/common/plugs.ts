@@ -5,6 +5,7 @@ export type PlugFunction<T> = (target: T) => T;
 export const PLUGS = {
   streamResponse: '__stream_response',
   withAuthorization: '__with_autorization',
+  httpGet: '__http_get'
 };
 
 const plugFields = Object.values(PLUGS);
@@ -51,3 +52,4 @@ export function applyPlugs(api: any, plugsMap: PlugsMap) {
 
 export const streamResponse = makeDefaultPlugAction(PLUGS.streamResponse);
 export const authorization = makeDefaultPlugAction(PLUGS.withAuthorization);
+export const httpGet = makeDefaultPlugAction(PLUGS.httpGet);

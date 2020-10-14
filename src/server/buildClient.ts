@@ -10,11 +10,12 @@ import { ResiAPIImplementation, ResiHandler } from '../common/typesConsts';
 export function buildClientFileCommands(
   resiAPIImplementation: ResiAPIImplementation,
   apiFiles: string[],
+  distDir: string,
   modelFiles: string[],
   callback: (buf: CreateFileMessage) => void,
 ) {
   apiFiles.forEach((apiFile) => {
-    const content = buildAPIFile(resiAPIImplementation, apiFile);
+    const content = buildAPIFile(resiAPIImplementation, apiFile, distDir);
     if (content) callback(content);
   });
 
@@ -25,8 +26,12 @@ export function buildClientFileCommands(
   return {};
 }
 
-function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: string) {
-  const fileImpl = require(apiFile).default;
+function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: string, distDir: string) {
+  let filePath = apiFile;
+  if (false === apiFile.includes(distDir)) {
+    filePath = filePath.replace('src', distDir);
+  }
+  const fileImpl = require(filePath).default;
   const impl = resiAPIImplementation[fileImpl.name];
 
   let content = fs.readFileSync(apiFile).toString();
