@@ -1,10 +1,11 @@
-import express, { Router, Express, Request, NextFunction, Response } from 'express';
+import express, { Router, Express, Request, NextFunction, Response, Handler } from 'express';
 import { Server } from 'http';
 import bodyParser from 'body-parser';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import path from 'path';
 import cors from 'cors';
+import crypto from 'crypto';
 import { promises as fs } from 'fs';
 import { mergeOptions } from '../common/utils';
 import { addAPIToRouter } from './mapAPIToRouter';
@@ -14,6 +15,7 @@ import { BUILD_CLIENT_API } from '../common/clientBuildCommon';
 import { ResiAPIImplementation, ResiHandler, ResiSecurity, RESI_ROUTE } from '../common/typesConsts';
 import { serverRunningMessage } from './serverRunning';
 import { ResiToken } from './security/ResiToken';
+import { makeAuthorizationMiddleware } from './security';
 
 export const reqToLog = (req: Request) => ({
   headers: req.headers,
@@ -81,6 +83,7 @@ export type CreateServerOptions = {
   port: number;
   bodyLimit: string;
   security: ResiSecurity;
+  authorizationMiddleware: Handler;
   hookSetup: (
     app: Express,
     router: Router,
@@ -108,6 +111,11 @@ export type CreateServerOptions = {
     options: CreateServerOptions,
   ) => Promise<void>;
 };
+
+export type CreateServerUserOptions = {
+  [key in keyof CreateServerOptions]?: CreateServerOptions[key];
+}
+
 const defaultOptions: CreateServerOptions = {
   logger: console,
   apiPrefix: RESI_ROUTE,
@@ -118,6 +126,7 @@ const defaultOptions: CreateServerOptions = {
     privateKey: Buffer.from(''),
     secret: Buffer.from(''),
   },
+  authorizationMiddleware: (req, res, next) =>  next(),
   async hookSetup(app: Express, router: Router) {
     return;
   },
@@ -173,6 +182,11 @@ const defaultOptions: CreateServerOptions = {
 
 export async function createServer(resiAPIImplementation: ResiAPIImplementation, options = defaultOptions) {
   const mergedOptions = mergeOptions(options, defaultOptions);
+  if (options.security) {
+    const publicKey = crypto.createPublicKey(options.security.publicKey);
+    const secret = crypto.createSecretKey(options.security.secret);
+    mergedOptions.authorizationMiddleware = makeAuthorizationMiddleware(publicKey, secret);
+  }
   const { setup, start, logger } = mergedOptions;
 
   const app = express();

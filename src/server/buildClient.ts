@@ -58,18 +58,27 @@ function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: str
   // properties.forEach(n => {
   for (let i = 0; i < properties.length; i++) {
     const n = properties[i];
-    const funcImpl = impl[n.key.name];
+    const funcImpl = impl[n.key.name as string] as ResiHandler;
     if (funcImpl instanceof Function) {
       const functionBody = content.substring(n.start, n.end);
-      replacements.push({ functionBody, name: n.key.name, funcImpl: funcImpl as ResiHandler });
+      const replacementObject = { functionBody, name: n.key.name, funcImpl, params: undefined };
+      if (n.value.type === 'CallExpression') {
+        replacementObject.params = n.value.arguments[0].params
+          .map((a: any) => a.name)
+          .filter((p: string) => p !== 'context');
+      }
+      replacements.push(replacementObject);
       const plugs = readPlugs(impl[n.key.name]);
       plugsMap[n.key.name] = plugs;
     }
   }
 
-  replacements.forEach(({ functionBody, name, funcImpl }) => {
-    const params = funcImpl.__params || [];
-    content = content.replace(functionBody, `${name}(${params.join(', ')}){}`);
+  replacements.forEach(({ functionBody, name, funcImpl, params }) => {
+    if (params) {
+      funcImpl.__params = params;
+    }
+    const finalParams = funcImpl.__params || [];
+    content = content.replace(functionBody, `${name}(${finalParams.join(', ')}){}`);
   });
 
   return new CreateFileMessage(path.basename(apiFile), content, 'APIs', plugsMap, impl.name);

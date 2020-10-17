@@ -4,6 +4,20 @@ import { checkPlug, PLUGS } from '../common/plugs';
 import { ResiAPIImplementation, ResiHandler, RESI_ROUTE } from '../common/typesConsts';
 import { getToken } from '../common/utils';
 
+const getAsyncStorage = () => {
+  try {
+    const aS_ = require('@react-native-community/async-storage');
+    console.log('aS_', aS_)
+    return aS_;
+  }
+  catch {
+    console.log('AsyncStorage does not exist!');
+    return null;
+  }
+}
+
+const aS = getAsyncStorage();
+
 export const defaultOptions = {
   axiosConfig: {},
   errorHandler(error: object | string) {
@@ -14,6 +28,15 @@ export const defaultOptions = {
     const token = getToken(res);
     if (token) {
       this.__token = `Bearer ${token}`;
+
+      if (this.__last_token !== this.__token) {
+        if (aS) {
+          aS.setItem('@resi-token', this.__token)
+            .then(() => console.log('Token stored'))
+            .catch((e:Error) => console.error('Failed to store token', { e }));
+        }
+        this.__last_token = this.__token;
+      }
     }
     return res.data;
   },
@@ -25,6 +48,27 @@ export const defaultOptions = {
     });
   },
   __token: '',
+  __last_token: '',
+  async __init_header_first() {
+    console.log('header first init')
+    if (aS) {
+      const item = await aS.getItem('@resi-token');
+      if (item) {
+        console.log('Fetched token from async storage');
+        this.__token = item;
+      }
+    }
+    return {};
+  },
+  async __init_header_not_first() {
+    console.log('header NOT first init')
+    return {};
+  },
+  async __init_header() {
+    const res = await this.__init_header_first();
+    this.__init_header = this.__init_header_not_first;
+    return res;
+  },
 };
 
 export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: string, options = defaultOptions) {
@@ -42,22 +86,23 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
       }
 
       apiImpl[funcName] = async function (...args: any[]) {
+        axiosConfig.headers = await options.__init_header();
+
         if (checkPlug(funcMetadata, PLUGS.withAuthorization) || checkPlug(apiImpl, PLUGS.withAuthorization)) {
-          // axiosConfig.headers.AUTHORIZATION =
           if (options.__token) {
-            axiosConfig.headers = { Authorization: options.__token };
+            axiosConfig.headers.Authorization = options.__token;
           } else console.error('Log in first');
         }
-        console.log('params', params);
-        // const requestBody = Object.assign(
-        //   {},
-        //   ...args.map((arg, idx) => ({ [params[idx]]: arg }))
-        // );
 
-        const requestBody = { args };
+        const customHeaders = checkPlug(funcMetadata, PLUGS.customHeaders);
+        if (customHeaders) {
+          Object.assign(axiosConfig.headers, customHeaders);
+        }
+
+        const requestBody = checkPlug(funcMetadata, PLUGS.customRequestBody) ? args[0] : { args };
         try {
           const url = [URL, RESI_ROUTE, apiName, funcName].join('/');
-          console.log('HTTP REQUEST', { url, requestBody });
+          console.log('HTTP REQUEST', { url, params });
           const res = await axios.post(url, requestBody, axiosConfig);
           return isStream ? options.streamHandler(res, args[args.length - 1]) : options.responseHandler(res);
         } catch (error) {

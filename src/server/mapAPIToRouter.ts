@@ -1,11 +1,11 @@
-import { NextFunction, Request, Response, Router } from 'express';
+import { Handler, NextFunction, Request, Response, Router } from 'express';
 
 import { iterateFunctionsAndParams } from '../common/functionParsing';
 import { PLUGS, checkPlug } from '../common/plugs';
 import { ResiAPIImplementation, ResiHandler, ResiSecurity } from '../common/typesConsts';
 import { mergeOptions } from '../common/utils';
-import { makeAuthorizationMiddleware } from './security';
-import crypto from 'crypto';
+import { CreateServerOptions, CreateServerUserOptions } from './createServer';
+import { makeRoleAuthorizationMiddleware } from './security';
 
 const securityDefault: ResiSecurity = {
   privateKey: Buffer.from(''),
@@ -49,17 +49,19 @@ function enrichContext(func: any, key: string, value: any) {
 export function addAPIToRouter(
   router: Router,
   resiAPIImplementation: ResiAPIImplementation,
-  options: AddAPIToRouterOptions = defaultOptions,
+  options: AddAPIToRouterOptions & CreateServerUserOptions = defaultOptions,
 ) {
-  const optionsFinal: AddAPIToRouterOptionsMerged = mergeOptions(options, defaultOptions);
-  const publicKey = crypto.createPublicKey(optionsFinal.security.publicKey);
-  const secret = crypto.createSecretKey(optionsFinal.security.secret);
+  const optionsFinal: AddAPIToRouterOptionsMerged & CreateServerOptions = mergeOptions(options, defaultOptions);
 
-  const { logger } = optionsFinal;
+  let { logger } = optionsFinal;
+  logger = logger || console;
 
   // logger.log('apiImplementation', apiImplementation);
   for (const apiName in resiAPIImplementation) {
     const api = resiAPIImplementation[apiName];
+    const apiAuthorization = checkPlug(api, PLUGS.withAuthorization);
+    const apiRoles = (api.__authorized_roles as unknown) as number[];
+    const apiHasRolesAuth = checkPlug(api, PLUGS.roleAuthorization);
     // if (checkPlug(api, PLUGS.withAuthorization) && optionsFinal.security) {
     //   router.post(`/${apiName}`, makeAuthorizationMiddleware(publicKey, secret));
     // }
@@ -70,19 +72,43 @@ export function addAPIToRouter(
       const funcImpl = api[func] as ResiHandler;
       funcImpl.__params = params;
       const httpAction = checkPlug(funcImpl, PLUGS.httpGet) ? 'get' : 'post';
-      if (
-        (checkPlug(funcImpl, PLUGS.withAuthorization) || checkPlug(api, PLUGS.withAuthorization)) &&
-        optionsFinal.security
-      ) {
-        router[httpAction](path, makeAuthorizationMiddleware(publicKey, secret));
-      }
-      router[httpAction](path, function (req, res, next) {
-        logger.debug('INCOMING', { path, body: req.body });
-        const args = req.body.args || [];
 
-        logger.debug('args', args);
+      const handlers : Handler[] = [];
+
+      if (
+        (checkPlug(funcImpl, PLUGS.withAuthorization) ||
+          apiAuthorization) &&
+        optionsFinal.security &&
+        optionsFinal.authorizationMiddleware
+      ) {
+        logger.info('Adding authorization middleware', { path, httpAction });
+        handlers.push(optionsFinal.authorizationMiddleware);
+      }
+
+      let rolesAuthorization: number[] = [];
+      if (apiHasRolesAuth) {
+        rolesAuthorization.push(...apiRoles);
+      }
+
+      if (checkPlug(funcImpl, PLUGS.roleAuthorization)) {
+        rolesAuthorization.push(...funcImpl.__authorized_roles);
+      }
+
+      if (rolesAuthorization.length > 0) {
+        logger.info('Adding role authorization', { path, httpAction });
+        
+        handlers.push(makeRoleAuthorizationMiddleware(rolesAuthorization));
+      }
+
+      if (checkPlug(funcImpl, PLUGS.prependMiddleware)) {
+        handlers.push(...funcImpl.__prepend_middleware_handlers)
+      }
+
+      handlers.push(function (req, res, next) {
+        logger.debug('INCOMING', { path });
+        const args = checkPlug(funcImpl, PLUGS.customRequestBody) ? [req.body] : req.body.args || [];
+
         try {
-          // if (!funcImpl.__context) funcImpl.__context = {};
           const context = { token: (req as any).__resi_token, resiOptions: optionsFinal };
 
           enrichContext(context, 'req', req);
@@ -105,6 +131,12 @@ export function addAPIToRouter(
           optionsFinal.errorHandler(error, res, next);
         }
       });
+
+      if (checkPlug(funcImpl, PLUGS.appendMiddleware)) {
+        handlers.push(...funcImpl.__append_middleware_handlers);
+      }
+
+      router[httpAction](path, ...handlers);
     }
   }
 }
