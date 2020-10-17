@@ -73,11 +73,10 @@ export function addAPIToRouter(
       funcImpl.__params = params;
       const httpAction = checkPlug(funcImpl, PLUGS.httpGet) ? 'get' : 'post';
 
-      const handlers : Handler[] = [];
+      const handlers: Handler[] = [];
 
       if (
-        (checkPlug(funcImpl, PLUGS.withAuthorization) ||
-          apiAuthorization) &&
+        (checkPlug(funcImpl, PLUGS.withAuthorization) || apiAuthorization) &&
         optionsFinal.security &&
         optionsFinal.authorizationMiddleware
       ) {
@@ -96,12 +95,12 @@ export function addAPIToRouter(
 
       if (rolesAuthorization.length > 0) {
         logger.info('Adding role authorization', { path, httpAction });
-        
+
         handlers.push(makeRoleAuthorizationMiddleware(rolesAuthorization));
       }
 
       if (checkPlug(funcImpl, PLUGS.prependMiddleware)) {
-        handlers.push(...funcImpl.__prepend_middleware_handlers)
+        handlers.push(...funcImpl.__prepend_middleware_handlers);
       }
 
       handlers.push(function (req, res, next) {

@@ -1,4 +1,4 @@
-import { KeyObject } from "crypto";
+import { KeyObject } from 'crypto';
 
 export type ResiAPIImplementation = {
   [api: string]: APIImplementation;

@@ -114,7 +114,7 @@ export type CreateServerOptions = {
 
 export type CreateServerUserOptions = {
   [key in keyof CreateServerOptions]?: CreateServerOptions[key];
-}
+};
 
 const defaultOptions: CreateServerOptions = {
   logger: console,
@@ -126,7 +126,7 @@ const defaultOptions: CreateServerOptions = {
     privateKey: Buffer.from(''),
     secret: Buffer.from(''),
   },
-  authorizationMiddleware: (req, res, next) =>  next(),
+  authorizationMiddleware: (req, res, next) => next(),
   async hookSetup(app: Express, router: Router) {
     return;
   },

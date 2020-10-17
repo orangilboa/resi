@@ -6,15 +6,14 @@ import { getToken } from '../common/utils';
 
 const getAsyncStorage = () => {
   try {
-    const aS_ = require('@react-native-community/async-storage');
-    console.log('aS_', aS_)
-    return aS_;
-  }
-  catch {
+    const AsyncStorage = require('@react-native-community/async-storage');
+    console.log('aS_', AsyncStorage);
+    return AsyncStorage;
+  } catch {
     console.log('AsyncStorage does not exist!');
     return null;
   }
-}
+};
 
 const aS = getAsyncStorage();
 
@@ -33,7 +32,7 @@ export const defaultOptions = {
         if (aS) {
           aS.setItem('@resi-token', this.__token)
             .then(() => console.log('Token stored'))
-            .catch((e:Error) => console.error('Failed to store token', { e }));
+            .catch((e: Error) => console.error('Failed to store token', { e }));
         }
         this.__last_token = this.__token;
       }
@@ -50,7 +49,7 @@ export const defaultOptions = {
   __token: '',
   __last_token: '',
   async __init_header_first() {
-    console.log('header first init')
+    console.log('header first init');
     if (aS) {
       const item = await aS.getItem('@resi-token');
       if (item) {
@@ -61,7 +60,7 @@ export const defaultOptions = {
     return {};
   },
   async __init_header_not_first() {
-    console.log('header NOT first init')
+    console.log('header NOT first init');
     return {};
   },
   async __init_header() {

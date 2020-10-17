@@ -11,7 +11,7 @@ const makeDefaultExpiry = () => {
   const now = new Date();
   now.setDate(now.getDate() + 1);
   return now;
-}
+};
 
 export class ResiToken {
   /**
@@ -36,7 +36,10 @@ export class ResiToken {
   }
 
   async addToResponse<T, TTarget>(context: ResiContext<T>, response: TTarget) {
-    const tokenStr = await this.encryptSign(context.resiOptions.security.privateKey, context.resiOptions.security.secret);
+    const tokenStr = await this.encryptSign(
+      context.resiOptions.security.privateKey,
+      context.resiOptions.security.secret,
+    );
     addTokenToResponse(response, tokenStr);
     return response;
   }

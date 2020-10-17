@@ -11,7 +11,7 @@ export const PLUGS = {
   appendMiddleware: '__append_middleware',
   customRequestBody: '__custom_request_body',
   customHeaders: '__custom_headers',
-  roleAuthorization: '__role_authorization'
+  roleAuthorization: '__role_authorization',
 };
 
 const plugFields = Object.values(PLUGS);
@@ -70,7 +70,7 @@ export const appendMiddleware = (...handlers: Handler[]) => (target: any) => {
 };
 export const customHeader = (headersObj: object) => (target: any) => {
   target[PLUGS.customHeaders] = headersObj;
-}
+};
 export const roleAuthorization = (...roles: number[]) => (target: any) => {
   if (!checkPlug(target, PLUGS.withAuthorization)) {
     authorization(target);
@@ -78,4 +78,4 @@ export const roleAuthorization = (...roles: number[]) => (target: any) => {
 
   defaultPlugAction(target, PLUGS.roleAuthorization);
   target.__authorized_roles = roles;
-}
+};
