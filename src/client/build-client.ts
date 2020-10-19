@@ -64,21 +64,21 @@ function createAPIIndexFileContent(apis: APIFile[]) {
   });
 
   return `import { makeResiImplementationFactory } from '@horos/resi/client';
-  import { applyPlugs } from '@horos/resi/plugs';
+import { applyPlugs } from '@horos/resi/plugs';
 
-  // Importing all APIs
-  ${imports.join('\n')}
+// Importing all APIs
+${imports.join('\n')}
   
-  // Applying plugs to functions
-  ${applyPlugs.join('\n')}
+// Applying plugs to functions
+${applyPlugs.join('\n')}
 
   // Actual API Object
-  export const resiAPIImplementation = {
-    ${objectFields.join(',\n')}
-  };
+export const resiAPIImplementation = {
+  ${objectFields.join(',\n\t')}
+};
   
-  // Helper function for creating a client with intellisense
-  export const makeResiClient = makeResiImplementationFactory(resiAPIImplementation)`;
+// Helper function for creating a client with intellisense
+export const makeResiClient = makeResiImplementationFactory(resiAPIImplementation);`;
 }
 
 async function handleCreateFileMessage(

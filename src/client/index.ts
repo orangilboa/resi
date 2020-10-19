@@ -49,7 +49,6 @@ export const defaultOptions = {
   __token: '',
   __last_token: '',
   async __init_header_first() {
-    console.log('header first init');
     if (aS) {
       const item = await aS.getItem('@resi-token');
       if (item) {
@@ -62,7 +61,6 @@ export const defaultOptions = {
     return {};
   },
   async __init_header_not_first() {
-    console.log('header NOT first init');
     return {};
   },
   async __init_header() {
@@ -103,7 +101,6 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
         const requestBody = checkPlug(funcMetadata, PLUGS.customRequestBody) ? args[0] : { args };
         try {
           const url = [URL, RESI_ROUTE, apiName, funcName].join('/');
-          console.log('HTTP REQUEST', { url, params });
           const res = await axios.post(url, requestBody, axiosConfig);
           return isStream ? options.streamHandler(res, args[args.length - 1]) : options.responseHandler(res);
         } catch (error) {
