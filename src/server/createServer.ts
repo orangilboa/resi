@@ -131,7 +131,7 @@ const defaultOptions: CreateServerOptions = {
   securityPaths: {
     publicKey: '',
     privateKey: '',
-    secret: ''
+    secret: '',
   },
   authorizationMiddleware: (req, res, next) => next(),
   makeRoleAuthorizationMiddleware(roles) {
@@ -193,9 +193,9 @@ const defaultOptions: CreateServerOptions = {
 
 export async function createServer(resiAPIImplementation: ResiAPIImplementation, options = defaultOptions) {
   const mergedOptions = mergeOptions(options, defaultOptions);
-  
+
   if (!options.security && options.securityPaths) {
-    mergedOptions.security = await KeyFile.resolveKeyFiles(options.securityPaths) as ResiSecurity;
+    mergedOptions.security = (await KeyFile.resolveKeyFiles(options.securityPaths)) as ResiSecurity;
   }
 
   if (mergedOptions.security) {
@@ -204,8 +204,8 @@ export async function createServer(resiAPIImplementation: ResiAPIImplementation,
     mergedOptions.authorizationMiddleware = makeAuthorizationMiddleware(publicKey, secret);
     mergedOptions.makeRoleAuthorizationMiddleware = (roles) => {
       console.log('Creating Role Authorization Middleware', { roles });
-      return makeRoleAuthorizationMiddleware(roles, publicKey, secret)
-    }
+      return makeRoleAuthorizationMiddleware(roles, publicKey, secret);
+    };
   }
   const { setup, start, logger } = mergedOptions;
 

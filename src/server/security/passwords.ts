@@ -45,9 +45,8 @@ export function comparePasswords(plaintextPassword: string, hashedPassword: stri
 }
 
 export const PasswordUtils = {
-    sha256, 
-    generateSalt,
-    hashPassword,
-    comparePasswords,
-    
-}
+  sha256,
+  generateSalt,
+  hashPassword,
+  comparePasswords,
+};

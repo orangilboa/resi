@@ -17,7 +17,7 @@ export type ResiSecurity = {
 };
 export type ResiSecurityPaths = {
   [key in ResiSecurityKeyType]: string;
-}
+};
 
 export const API_DIRECTORY = 'apis';
 export const MODELS_DIRECTORY = 'models';
