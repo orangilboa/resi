@@ -1,4 +1,5 @@
 import { Handler } from 'express';
+import { Request } from 'express-serve-static-core';
 import { PlugsMap } from './clientBuildCommon';
 
 export type PlugFunction<T> = (target: T) => T;
@@ -12,6 +13,8 @@ export const PLUGS = {
   customRequestBody: '__custom_request_body',
   customHeaders: '__custom_headers',
   roleAuthorization: '__role_authorization',
+  cacheServer: '__cache_server',
+  cacheClient: '__cache_client'
 };
 
 const plugFields = Object.values(PLUGS);
@@ -60,17 +63,21 @@ export const streamResponse = makeDefaultPlugAction(PLUGS.streamResponse);
 export const authorization = makeDefaultPlugAction(PLUGS.withAuthorization);
 export const httpGet = makeDefaultPlugAction(PLUGS.httpGet);
 export const customRequestBody = makeDefaultPlugAction(PLUGS.customRequestBody);
+
 export const prependMiddleware = (...handlers: Handler[]) => (target: any) => {
   defaultPlugAction(target, PLUGS.prependMiddleware);
   target.__prepend_middleware_handlers = handlers;
 };
+
 export const appendMiddleware = (...handlers: Handler[]) => (target: any) => {
   defaultPlugAction(target, PLUGS.appendMiddleware);
   target.__append_middleware_handlers = handlers;
 };
+
 export const customHeader = (headersObj: object) => (target: any) => {
   target[PLUGS.customHeaders] = headersObj;
 };
+
 export const roleAuthorization = (...roles: number[]) => (target: any) => {
   if (!checkPlug(target, PLUGS.withAuthorization)) {
     authorization(target);
@@ -79,3 +86,23 @@ export const roleAuthorization = (...roles: number[]) => (target: any) => {
   defaultPlugAction(target, PLUGS.roleAuthorization);
   target.__authorized_roles = roles;
 };
+
+const defaultCompareBy = (body: any) => JSON.stringify(body);
+const keysCompareBy = (body: any, compareBy: string[]) =>
+  JSON.stringify(compareBy.map((key) => body[key]));
+
+const cachePlug = (plug: string, timeoutSeconds: number, compareBy: string[] | ((body: object) => string) = defaultCompareBy) => (target: any) => {
+  defaultPlugAction(target, plug);
+  target.__resi_cache = { timeoutSeconds };
+  if (false === compareBy instanceof Function) {
+    target.__resi_cache.compareBy = compareBy;
+  }
+}
+
+export const serverCache = (timeoutSeconds: number = 60*15, compareBy: string[] | ((body: object) => string) = defaultCompareBy) => (target: any) => {
+  cachePlug(PLUGS.cacheServer, timeoutSeconds, compareBy);
+}
+
+export const clientCache= (timeoutSeconds: number = 60*15, compareBy: string[] | ((body: object) => string) = defaultCompareBy) => (target: any) => {
+  cachePlug(PLUGS.cacheClient, timeoutSeconds, compareBy);
+}

@@ -12,10 +12,10 @@ import { addAPIToRouter } from './mapAPIToRouter';
 import { enrich, streamResponse } from '../common/plugs';
 import { buildClientFileCommands } from './buildClient';
 import { BUILD_CLIENT_API } from '../common/clientBuildCommon';
-import { ResiAPIImplementation, ResiHandler, ResiSecurity, RESI_ROUTE } from '../common/typesConsts';
+import { ResiAPIImplementation, ResiHandler, ResiSecurity, ResiSecurityPaths, RESI_ROUTE } from '../common/typesConsts';
 import { serverRunningMessage } from './serverRunning';
 import { ResiToken } from './security/ResiToken';
-import { makeAuthorizationMiddleware } from './security';
+import { KeyFile, makeAuthorizationMiddleware, makeRoleAuthorizationMiddleware } from './security';
 
 export const reqToLog = (req: Request) => ({
   headers: req.headers,
@@ -83,7 +83,9 @@ export type CreateServerOptions = {
   port: number;
   bodyLimit: string;
   security: ResiSecurity;
+  securityPaths: ResiSecurityPaths;
   authorizationMiddleware: Handler;
+  makeRoleAuthorizationMiddleware: (roles: number[]) => Handler;
   hookSetup: (
     app: Express,
     router: Router,
@@ -126,7 +128,15 @@ const defaultOptions: CreateServerOptions = {
     privateKey: Buffer.from(''),
     secret: Buffer.from(''),
   },
+  securityPaths: {
+    publicKey: '',
+    privateKey: '',
+    secret: ''
+  },
   authorizationMiddleware: (req, res, next) => next(),
+  makeRoleAuthorizationMiddleware(roles) {
+    return this.authorizationMiddleware;
+  },
   async hookSetup(app: Express, router: Router) {
     return;
   },
@@ -146,7 +156,8 @@ const defaultOptions: CreateServerOptions = {
       max: 100, // limit each IP to 100 requests per windowMs
     });
 
-    app.use(limiter, morgan('dev'), cors(), bodyParser.json({ limit: options.bodyLimit }));
+    // app.use(limiter, morgan('dev'), cors(), bodyParser.json({ limit: options.bodyLimit }));
+    app.use(morgan('dev'), cors(), bodyParser.json({ limit: options.bodyLimit }));
 
     await options.setRoutes(app, router, resiAPIImplementation, options);
     app.use(`/${options.apiPrefix}`, router);
@@ -182,10 +193,19 @@ const defaultOptions: CreateServerOptions = {
 
 export async function createServer(resiAPIImplementation: ResiAPIImplementation, options = defaultOptions) {
   const mergedOptions = mergeOptions(options, defaultOptions);
-  if (options.security) {
-    const publicKey = crypto.createPublicKey(options.security.publicKey);
-    const secret = crypto.createSecretKey(options.security.secret);
+  
+  if (!options.security && options.securityPaths) {
+    mergedOptions.security = await KeyFile.resolveKeyFiles(options.securityPaths) as ResiSecurity;
+  }
+
+  if (mergedOptions.security) {
+    const publicKey = crypto.createPublicKey(mergedOptions.security.publicKey);
+    const secret = crypto.createSecretKey(mergedOptions.security.secret);
     mergedOptions.authorizationMiddleware = makeAuthorizationMiddleware(publicKey, secret);
+    mergedOptions.makeRoleAuthorizationMiddleware = (roles) => {
+      console.log('Creating Role Authorization Middleware', { roles });
+      return makeRoleAuthorizationMiddleware(roles, publicKey, secret)
+    }
   }
   const { setup, start, logger } = mergedOptions;
 

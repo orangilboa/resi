@@ -68,15 +68,15 @@ import { applyPlugs } from '@horos/resi/plugs';
 
 // Importing all APIs
 ${imports.join('\n')}
-  
+
 // Applying plugs to functions
 ${applyPlugs.join('\n')}
 
-  // Actual API Object
+// Actual API Object
 export const resiAPIImplementation = {
   ${objectFields.join(',\n\t')}
 };
-  
+
 // Helper function for creating a client with intellisense
 export const makeResiClient = makeResiImplementationFactory(resiAPIImplementation);`;
 }

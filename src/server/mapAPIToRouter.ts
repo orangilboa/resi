@@ -93,10 +93,10 @@ export function addAPIToRouter(
         rolesAuthorization.push(...funcImpl.__authorized_roles);
       }
 
-      if (rolesAuthorization.length > 0) {
+      if (rolesAuthorization.length > 0 && optionsFinal.makeRoleAuthorizationMiddleware) {
         logger.info('Adding role authorization', { path, httpAction });
 
-        handlers.push(makeRoleAuthorizationMiddleware(rolesAuthorization));
+        handlers.push(optionsFinal.makeRoleAuthorizationMiddleware(rolesAuthorization));
       }
 
       if (checkPlug(funcImpl, PLUGS.prependMiddleware)) {

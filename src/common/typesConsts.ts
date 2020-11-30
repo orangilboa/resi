@@ -15,6 +15,9 @@ export type ResiSecurityKeyType = 'privateKey' | 'publicKey' | 'secret';
 export type ResiSecurity = {
   [key in ResiSecurityKeyType]: Buffer;
 };
+export type ResiSecurityPaths = {
+  [key in ResiSecurityKeyType]: string;
+}
 
 export const API_DIRECTORY = 'apis';
 export const MODELS_DIRECTORY = 'models';

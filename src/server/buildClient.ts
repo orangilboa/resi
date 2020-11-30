@@ -81,22 +81,42 @@ function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: str
     content = content.replace(functionBody, `${name}(${finalParams.join(', ')}){}`);
   });
 
+  content = replaceRoleAuthorization(content);
+
   return new CreateFileMessage(path.basename(apiFile), content, 'APIs', plugsMap, impl.name);
+}
+
+function replaceRoleAuthorization(content: string) {
+  const indexOf = content.indexOf('roleAuthorization');
+  if (indexOf > 0) {
+    const closingParenthesis = content.indexOf(')', indexOf);
+    return `${content.substring(0, indexOf)}authorization${content.substring(closingParenthesis + 1)}`;
+  }
+  return content;
 }
 
 function stripImports(content: string) {
   const stripped = content
     .split('\n')
-    .filter((row) => {
+    .map((row) => {
+      const rowHasRequireOrImport = row.includes('require') || row.includes('import');
       const keep =
-        false === (row.includes('require') || row.includes('import')) ||
+        false === rowHasRequireOrImport ||
         row.includes('models') ||
         (row.includes('@horos/resi') && false === row.includes('server'));
       if (!keep) {
-        console.log('Stripping', { row });
+        console.log('Stripping:\t', row);
+        return null;
       }
-      return keep;
+
+      if (rowHasRequireOrImport) {
+        if (row.includes('authorization')) {
+          row = row.replace('roleAuthorization', '');
+        } else row = row.replace('roleAuthorization', 'authorization');
+      }
+      return row;
     })
+    .filter((i) => i)
     .join('\n');
   return stripped;
 }
