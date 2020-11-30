@@ -103,7 +103,7 @@ function stripImports(content: string) {
       const keep =
         false === rowHasRequireOrImport ||
         row.includes('models') ||
-        (row.includes('@horos/resi') && false === row.includes('server'));
+        (row.includes('@horos/resi') && false === (row.includes('server') || row.includes('security')));
       if (!keep) {
         console.log('Stripping:\t', row);
         return null;
