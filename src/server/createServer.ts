@@ -203,7 +203,6 @@ export async function createServer(resiAPIImplementation: ResiAPIImplementation,
     const secret = crypto.createSecretKey(mergedOptions.security.secret);
     mergedOptions.authorizationMiddleware = makeAuthorizationMiddleware(publicKey, secret);
     mergedOptions.makeRoleAuthorizationMiddleware = (roles) => {
-      console.log('Creating Role Authorization Middleware', { roles });
       return makeRoleAuthorizationMiddleware(roles, publicKey, secret);
     };
   }

@@ -7,6 +7,8 @@ import { CreateFileMessage, PlugsMap } from '../common/clientBuildCommon';
 import { readPlugs } from '../common/plugs';
 import { ResiAPIImplementation, ResiHandler } from '../common/typesConsts';
 
+const REMOVE_PLUGS = ['prependMiddleware', 'appendMiddleware'];
+
 export function buildClientFileCommands(
   resiAPIImplementation: ResiAPIImplementation,
   apiFiles: string[],
@@ -53,6 +55,7 @@ function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: str
   if (!objNode || !properties) return null;
 
   const replacements = [];
+  const removals = [];
   const plugsMap: PlugsMap = {};
 
   // properties.forEach(n => {
@@ -73,12 +76,28 @@ function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: str
     }
   }
 
+  if (objNode.declaration.arguments.length > 2) {
+    for (const argument of objNode.declaration.arguments.slice(2)) {
+      if (argument.callee && REMOVE_PLUGS.includes(argument.callee.name)) {
+        let start = argument.start;
+        if (content[argument.start - 1] === ',') start--;
+        else if (content[argument.start - 1] === ' ' && content[argument.start - 2] === ',') start -= 2;
+
+        removals.push(content.substring(start, argument.end));
+      }
+    }
+  }
+
   replacements.forEach(({ functionBody, name, funcImpl, params }) => {
     if (params) {
       funcImpl.__params = params;
     }
     const finalParams = funcImpl.__params || [];
     content = content.replace(functionBody, `${name}(${finalParams.join(', ')}){}`);
+  });
+
+  removals.forEach((r) => {
+    content = content.replace(r, '');
   });
 
   content = replaceRoleAuthorization(content);

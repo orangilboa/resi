@@ -56,3 +56,4 @@ Thumbs.db
 /server.js
 /server.d.ts
 /key-set
+.vscode/settings.json

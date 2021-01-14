@@ -6,11 +6,10 @@ import { getToken } from '../common/utils';
 
 const getAsyncStorage = () => {
   try {
-    const AsyncStorage = require('@react-native-community/async-storage').default;
-    console.log('aS_', AsyncStorage);
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
     return AsyncStorage;
   } catch (e) {
-    console.log('AsyncStorage does not exist!', e);
+    console.log('RESI: No Storage', e);
     return null;
   }
 };
@@ -31,7 +30,7 @@ export const defaultOptions = {
       if (this.__last_token !== this.__token) {
         if (aS) {
           aS.setItem('@resi-token', this.__token)
-            .then(() => console.log('Token stored'))
+            .then(() => console.log('RESI: Token stored'))
             .catch((e: Error) => console.error('Failed to store token', { e }));
         }
         this.__last_token = this.__token;
@@ -52,10 +51,10 @@ export const defaultOptions = {
     if (aS) {
       const item = await aS.getItem('@resi-token');
       if (item) {
-        console.log('Fetched token from async storage', { item });
+        console.log('RESI: Found token', { item });
         this.__token = item;
       } else {
-        console.log('No token in storage');
+        console.log('RESI: No token');
       }
     }
     return {};

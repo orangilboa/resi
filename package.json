@@ -1,6 +1,6 @@
 {
   "name": "@horos/resi",
-  "version": "0.0.10",
+  "version": "0.0.13",
   "description": "Resi Web API Package",
   "main": "dist/index.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "@babel/polyfill": "^7.11.5",
     "@babel/preset-env": "^7.11.5",
     "@babel/register": "^7.11.5",
-    "@react-native-community/async-storage": "^1.12.1",
+    "@react-native-async-storage/async-storage": "^1.13.2",
     "@types/cors": "^2.8.8",
     "@types/express": "^4.17.8",
     "@types/express-rate-limit": "^5.1.0",
@@ -55,7 +55,7 @@
     "paseto": "^1.0.7"
   },
   "peerDependencies": {
-    "@react-native-community/async-storage": "^1.12.1"
+    "@react-native-async-storage/async-storage": "^1.13.2"
   },
   "bin": {
     "build-client": "dist/client/build-client.js",

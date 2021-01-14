@@ -62,9 +62,9 @@ export function addAPIToRouter(
     const apiAuthorization = checkPlug(api, PLUGS.withAuthorization);
     const apiRoles = (api.__authorized_roles as unknown) as number[];
     const apiHasRolesAuth = checkPlug(api, PLUGS.roleAuthorization);
-    // if (checkPlug(api, PLUGS.withAuthorization) && optionsFinal.security) {
-    //   router.post(`/${apiName}`, makeAuthorizationMiddleware(publicKey, secret));
-    // }
+    const apiHasPrepend = checkPlug(api, PLUGS.prependMiddleware);
+    const apiHasAppend = checkPlug(api, PLUGS.appendMiddleware);
+
     logger.debug('api', apiName);
     for (const { func, params } of iterateFunctionsAndParams(resiAPIImplementation[apiName])) {
       const path = '/' + apiName + '/' + func;
@@ -74,7 +74,8 @@ export function addAPIToRouter(
       const httpAction = checkPlug(funcImpl, PLUGS.httpGet) ? 'get' : 'post';
 
       const handlers: Handler[] = [];
-
+      const addHandler = (handler: Handler) => handlers.push(handler);
+      
       if (
         (checkPlug(funcImpl, PLUGS.withAuthorization) || apiAuthorization) &&
         optionsFinal.security &&
@@ -99,12 +100,15 @@ export function addAPIToRouter(
         handlers.push(optionsFinal.makeRoleAuthorizationMiddleware(rolesAuthorization));
       }
 
-      if (checkPlug(funcImpl, PLUGS.prependMiddleware)) {
-        handlers.push(...funcImpl.__prepend_middleware_handlers);
+      if (apiHasPrepend || checkPlug(funcImpl, PLUGS.prependMiddleware)) {
+        if (api.__prepend_middleware_handlers)
+          ((api.__prepend_middleware_handlers as unknown) as Handler[]).forEach(addHandler);
+
+        if (funcImpl.__prepend_middleware_handlers) funcImpl.__prepend_middleware_handlers.forEach(addHandler);
       }
 
       handlers.push(function (req, res, next) {
-        logger.debug('INCOMING', { path });
+        // logger.debug('INCOMING', { path });
         const args = checkPlug(funcImpl, PLUGS.customRequestBody) ? [req.body] : req.body.args || [];
 
         try {
@@ -131,8 +135,11 @@ export function addAPIToRouter(
         }
       });
 
-      if (checkPlug(funcImpl, PLUGS.appendMiddleware)) {
-        handlers.push(...funcImpl.__append_middleware_handlers);
+      if (apiHasAppend || checkPlug(funcImpl, PLUGS.appendMiddleware)) {
+        if (api.__append_middleware_handlers)
+        ((api.__append_middleware_handlers as unknown) as Handler[]).forEach(addHandler);
+
+      if (funcImpl.__append_middleware_handlers) funcImpl.__append_middleware_handlers.forEach(addHandler);
       }
 
       router[httpAction](path, ...handlers);
