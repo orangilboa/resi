@@ -2,6 +2,12 @@ export type ResiAPIImplementation = {
   [api: string]: APIImplementation;
 };
 
+export type ResiClient<T> = T & {
+  resi: {
+    clearCredentials: () => void;
+  };
+};
+
 export type APIImplementation = {
   [func: string]: ResiHandler | string;
   name: string;

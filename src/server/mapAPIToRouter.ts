@@ -75,7 +75,7 @@ export function addAPIToRouter(
 
       const handlers: Handler[] = [];
       const addHandler = (handler: Handler) => handlers.push(handler);
-      
+
       if (
         (checkPlug(funcImpl, PLUGS.withAuthorization) || apiAuthorization) &&
         optionsFinal.security &&
@@ -137,9 +137,9 @@ export function addAPIToRouter(
 
       if (apiHasAppend || checkPlug(funcImpl, PLUGS.appendMiddleware)) {
         if (api.__append_middleware_handlers)
-        ((api.__append_middleware_handlers as unknown) as Handler[]).forEach(addHandler);
+          ((api.__append_middleware_handlers as unknown) as Handler[]).forEach(addHandler);
 
-      if (funcImpl.__append_middleware_handlers) funcImpl.__append_middleware_handlers.forEach(addHandler);
+        if (funcImpl.__append_middleware_handlers) funcImpl.__append_middleware_handlers.forEach(addHandler);
       }
 
       router[httpAction](path, ...handlers);

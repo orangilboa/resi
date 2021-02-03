@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { getParamNames } from '../common/functionParsing';
 import { checkPlug, PLUGS } from '../common/plugs';
-import { ResiAPIImplementation, ResiHandler, RESI_ROUTE } from '../common/typesConsts';
+import { ResiAPIImplementation, ResiClient, ResiHandler, RESI_ROUTE } from '../common/typesConsts';
 import { getToken } from '../common/utils';
 
 const getAsyncStorage = () => {
@@ -108,10 +108,18 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
       };
     }
   }
-  return resiAPIImplementation;
+
+  const clientImpl = resiAPIImplementation as ResiClient<ResiAPIImplementation>;
+  clientImpl.resi = {
+    clearCredentials: () => {
+      options.__token = '';
+      options.__last_token = '';
+    }
+  }
+  return clientImpl;
 }
 
 export function makeResiImplementationFactory<T>(resiAPIImplementation: T) {
   return (URL: string, options = defaultOptions) =>
-    (makeClient((resiAPIImplementation as unknown) as ResiAPIImplementation, URL, options) as unknown) as T;
+    (makeClient((resiAPIImplementation as unknown) as ResiAPIImplementation, URL, options) as unknown) as ResiClient<T>;
 }
