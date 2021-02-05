@@ -114,8 +114,8 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
     clearCredentials: () => {
       options.__token = '';
       options.__last_token = '';
-    }
-  }
+    },
+  };
   return clientImpl;
 }
 

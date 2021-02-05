@@ -15,7 +15,7 @@ async function extractAndAddResiToken(
   if (req.headers && req.headers.authorization) {
     const signedDecryptedToken = req.headers.authorization.replace('Bearer', '').trim();
     const resiToken = await ResiToken.verifyDecryptToken(signedDecryptedToken, publicKey, secret);
-    if (resiToken.expiry > new Date()) {
+    if (resiToken.expiry < new Date()) {
       res.status(401);
       next('Token expired. Please login');
       return false;
