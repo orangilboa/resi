@@ -4,6 +4,8 @@ import { checkPlug, PLUGS } from '../common/plugs';
 import { ResiAPIImplementation, ResiClient, ResiHandler, RESI_ROUTE } from '../common/typesConsts';
 import { getToken } from '../common/utils';
 
+const TOKEN_KEY = '@resi-token';
+
 const getAsyncStorage = () => {
   try {
     const AsyncStorage = require('@react-native-async-storage/async-storage').default;
@@ -29,7 +31,7 @@ export const defaultOptions = {
 
       if (this.__last_token !== this.__token) {
         if (aS) {
-          aS.setItem('@resi-token', this.__token)
+          aS.setItem(TOKEN_KEY, this.__token)
             .then(() => console.log('RESI: Token stored'))
             .catch((e: Error) => console.error('Failed to store token', { e }));
         }
@@ -49,7 +51,7 @@ export const defaultOptions = {
   __last_token: '',
   async __init_header_first() {
     if (aS) {
-      const item = await aS.getItem('@resi-token');
+      const item = await aS.getItem(TOKEN_KEY);
       if (item) {
         console.log('RESI: Found token', { item });
         this.__token = item;
@@ -111,9 +113,13 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
 
   const clientImpl = resiAPIImplementation as ResiClient<ResiAPIImplementation>;
   clientImpl.resi = {
-    clearCredentials: () => {
+     clearCredentials: async () => {
       options.__token = '';
       options.__last_token = '';
+
+      if (aS) {
+        await aS.removeItem(TOKEN_KEY)
+      }
     },
   };
   return clientImpl;
