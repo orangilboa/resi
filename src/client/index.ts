@@ -113,12 +113,12 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
 
   const clientImpl = resiAPIImplementation as ResiClient<ResiAPIImplementation>;
   clientImpl.resi = {
-     clearCredentials: async () => {
+    clearCredentials: async () => {
       options.__token = '';
       options.__last_token = '';
 
       if (aS) {
-        await aS.removeItem(TOKEN_KEY)
+        await aS.removeItem(TOKEN_KEY);
       }
     },
   };
