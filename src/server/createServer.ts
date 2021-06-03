@@ -201,9 +201,9 @@ export async function createServer(resiAPIImplementation: ResiAPIImplementation,
   if (mergedOptions.security) {
     const publicKey = crypto.createPublicKey(mergedOptions.security.publicKey);
     const secret = crypto.createSecretKey(mergedOptions.security.secret);
-    mergedOptions.authorizationMiddleware = makeAuthorizationMiddleware(publicKey, secret);
+    mergedOptions.authorizationMiddleware = makeAuthorizationMiddleware(publicKey, secret, options.logger);
     mergedOptions.makeRoleAuthorizationMiddleware = (roles) => {
-      return makeRoleAuthorizationMiddleware(roles, publicKey, secret);
+      return makeRoleAuthorizationMiddleware(roles, publicKey, secret, options.logger);
     };
   }
   const { setup, start, logger } = mergedOptions;

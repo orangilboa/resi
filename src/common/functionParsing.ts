@@ -14,16 +14,6 @@ const exclude = [
   'function',
   'name',
 ];
-const excludeFilter = (i: string) => false === (i.startsWith('_') || exclude.includes(i));
-
-// function collectKeys(prototype, applyBlacklist, functions = []) {
-//   functions.push(...Reflect.ownKeys(prototype).map((k) => k.toString()));
-//   if (prototype.__proto__) {
-//     return collectKeys(prototype.__proto__, applyBlacklist, functions);
-//   } else {
-//     return functions.filter(excludeFilter);
-//   }
-// }
 
 export function getParamNames(func: Function, isTS = false) {
   const fnStr = func.toString().replace(STRIP_COMMENTS, '').replace(':', ': ');

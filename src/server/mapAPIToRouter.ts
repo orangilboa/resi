@@ -5,7 +5,6 @@ import { PLUGS, checkPlug } from '../common/plugs';
 import { ResiAPIImplementation, ResiHandler, ResiSecurity } from '../common/typesConsts';
 import { mergeOptions } from '../common/utils';
 import { CreateServerOptions, CreateServerUserOptions } from './createServer';
-import { makeRoleAuthorizationMiddleware } from './security';
 
 const securityDefault: ResiSecurity = {
   privateKey: Buffer.from(''),

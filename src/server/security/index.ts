@@ -29,12 +29,17 @@ async function extractAndAddResiToken(
   }
 }
 
-export function makeAuthorizationMiddleware(publicKey: KeyObject, secret: KeyObject) {
+export function makeAuthorizationMiddleware(publicKey: KeyObject, secret: KeyObject, logger?: Console) {
   const middleware = async function authorizationMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
       const success = await extractAndAddResiToken(req, res, next, publicKey, secret);
       if (success) next();
+      else {
+        logger?.warn('Resi Token Authorization: invalid token', { ips: req.ips });
+        next('Invalid token');
+      }
     } catch (e) {
+      logger?.error('Resi Token Authorization: authorization exception', { error: e, ips: req.ips });
       next(e);
     }
   };
@@ -42,7 +47,12 @@ export function makeAuthorizationMiddleware(publicKey: KeyObject, secret: KeyObj
   return middleware;
 }
 
-export function makeRoleAuthorizationMiddleware(roles: number[], publicKey: KeyObject, secret: KeyObject) {
+export function makeRoleAuthorizationMiddleware(
+  roles: number[],
+  publicKey: KeyObject,
+  secret: KeyObject,
+  logger?: Console,
+) {
   const middleware = async function rolesMiddleware(req: Request, res: Response, next: NextFunction) {
     const reqAny = req as any;
 
@@ -56,10 +66,12 @@ export function makeRoleAuthorizationMiddleware(roles: number[], publicKey: KeyO
       if (roles.includes(resiToken.role)) {
         next();
       } else {
+        logger?.warn('Resi Role Authorization: wrong role', { resiToken, allowed: roles });
         res.status(401);
         next('Invalid role');
       }
     } else {
+      logger?.warn('Resi Role Authorization: no role', { resiToken, allowed: roles });
       res.status(401);
       next('No role in token');
     }

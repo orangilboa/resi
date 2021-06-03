@@ -1,6 +1,6 @@
 {
   "name": "@horos/resi",
-  "version": "0.0.16",
+  "version": "0.1.0",
   "description": "Resi Web API Package",
   "main": "dist/index.js",
   "scripts": {
@@ -55,7 +55,8 @@
     "paseto": "^1.0.7"
   },
   "peerDependencies": {
-    "@react-native-async-storage/async-storage": "^1.13.2"
+    "@react-native-async-storage/async-storage": "^1.13.2",
+    "acorn": "^8.3.0"
   },
   "bin": {
     "build-client": "dist/client/build-client.js",

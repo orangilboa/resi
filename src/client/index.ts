@@ -1,5 +1,4 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { getParamNames } from '../common/functionParsing';
 import { checkPlug, PLUGS } from '../common/plugs';
 import { ResiAPIImplementation, ResiClient, ResiHandler, RESI_ROUTE } from '../common/typesConsts';
 import { getToken } from '../common/utils';
@@ -76,7 +75,6 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
     const apiImpl = resiAPIImplementation[apiName];
     for (const func in apiImpl) {
       if (false === apiImpl[func] instanceof Function) continue;
-      const params = getParamNames(apiImpl[func] as ResiHandler);
       const funcName = func.toString();
       const funcMetadata = apiImpl[funcName];
       const axiosConfig: AxiosRequestConfig = Object.assign({}, options.axiosConfig);

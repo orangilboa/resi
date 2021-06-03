@@ -1,14 +1,15 @@
 {
-    "version": "0.1.0",
+    "version": "2.0.0",
     "command": "yarn",
-    "isShellCommand": true,
-    "showOutput": "always",
-    "suppressTaskName": true,
     "tasks": [
         {
-            "taskName": "build",
-            "args": [ "build" ],
-            "isBuildCommand": true
+            "label": "build",
+            "type": "shell",
+            "args": [
+                "build"
+            ],
+            "problemMatcher": [],
+            "group": "build"
         }
     ]
 }

@@ -26,7 +26,7 @@ export function describeAPI(resiAPIImplementation: ResiAPIImplementation, tabPad
   Object.keys(resiAPIImplementation).forEach((api) => {
     lines.push(`${tabPadding} ${api}`);
     Object.keys(resiAPIImplementation[api]).forEach((func) => {
-      if (func === 'name') return;
+      if (func === 'name' || func.startsWith('__')) return;
       lines.push(`${tabPadding}     ${func}`);
     });
   });
