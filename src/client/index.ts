@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { checkPlug, PLUGS } from '../common/plugs';
-import { ResiAPIImplementation, ResiClient, ResiHandler, RESI_ROUTE } from '../common/typesConsts';
-import { getToken } from '../common/utils';
+import { AUTH_TOKEN_FIELD, ResiAPIImplementation, ResiClient, RESI_ROUTE } from '../common/typesConsts';
 
 const TOKEN_KEY = '@resi-token';
 
@@ -14,6 +13,11 @@ const getAsyncStorage = () => {
     return null;
   }
 };
+
+export function getToken(res: AxiosResponse) {
+  const token = res.data && res.data[AUTH_TOKEN_FIELD];
+  return token;
+}
 
 const aS = getAsyncStorage();
 

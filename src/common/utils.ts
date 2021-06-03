@@ -1,5 +1,4 @@
-import { AxiosResponse } from 'axios';
-import { AUTH_TOKEN_FIELD, ResiAPIImplementation } from './typesConsts';
+import { ResiAPIImplementation } from './typesConsts';
 
 export function mergeOptions<T, TMerged = T>(options: T, defaultOptions: T) {
   const finalOptions: any = !options
@@ -13,11 +12,6 @@ export function mergeOptions<T, TMerged = T>(options: T, defaultOptions: T) {
     }
   });
   return finalOptions as TMerged;
-}
-
-export function getToken(res: AxiosResponse) {
-  const token = res.data && res.data[AUTH_TOKEN_FIELD];
-  return token;
 }
 
 export function describeAPI(resiAPIImplementation: ResiAPIImplementation, tabPadding = '') {
