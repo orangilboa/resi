@@ -4,7 +4,8 @@ import { addTokenToResponse } from '.';
 import { ResiContext } from '../createServer';
 
 const {
-  V1: { decrypt, encrypt, sign, verify },
+  V1: { decrypt, encrypt },
+  V2: { sign, verify },
 } = paseto;
 
 const makeDefaultExpiry = () => {
