@@ -9,7 +9,7 @@ import paseto from 'paseto';
 const generateKeyPair = promisify(crypto.generateKeyPair);
 
 const {
-  V2: { generateKey },
+  V1: { generateKey },
 } = paseto;
 
 async function createKeySet(dir: string) {
