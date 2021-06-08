@@ -1,34 +1,16 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { checkPlug, PLUGS } from '../common/plugs';
 import { AUTH_TOKEN_FIELD, ResiAPIImplementation, ResiClient, RESI_ROUTE } from '../common/typesConsts';
-
-const TOKEN_KEY = '@resi-token';
-
-const getAsyncStorage = () => {
-  try {
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    return AsyncStorage;
-  } catch (e) {
-    console.log('RESI: No Storage', e);
-    return null;
-  }
-};
-
-export function getToken(res: AxiosResponse) {
-  const token = res.data && res.data[AUTH_TOKEN_FIELD];
-  return token;
-}
-
-const aS = getAsyncStorage();
+import { aS, executeFetchReader, getToken, TOKEN_KEY } from './lib';
 
 export const defaultOptions = {
-  axiosConfig: {},
+  fetchOptions: {},
   errorHandler(error: object | string) {
     console.error(error);
     return undefined;
   },
-  responseHandler(res: AxiosResponse) {
-    const token = getToken(res);
+  async responseHandler(res: Response) {
+    const data = await res.json();
+    const token = getToken(data);
     if (token) {
       this.__token = `Bearer ${token}`;
 
@@ -41,14 +23,13 @@ export const defaultOptions = {
         this.__last_token = this.__token;
       }
     }
-    return res.data;
+    return data;
   },
-  streamHandler(res: AxiosResponse, callback: (buf: Buffer) => void) {
-    return new Promise((resolve, reject) => {
-      res.data.on('data', callback);
-      res.data.on('end', resolve);
-      res.data.on('error', reject);
-    });
+  async streamHandler(res: Response, callback: (buf: Uint8Array) => void) {
+    console.log('stream handler res', res);
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error('Unable to open download stream');
+    else return executeFetchReader(reader, callback);
   },
   __token: '',
   __last_token: '',
@@ -62,10 +43,12 @@ export const defaultOptions = {
         console.log('RESI: No token');
       }
     }
-    return {};
+    return this.__init_header_not_first();
   },
   async __init_header_not_first() {
-    return {};
+    return {
+      'Content-Type': 'application/json',
+    };
   },
   async __init_header() {
     const res = await this.__init_header_first();
@@ -81,30 +64,29 @@ export function makeClient(resiAPIImplementation: ResiAPIImplementation, URL: st
       if (false === apiImpl[func] instanceof Function) continue;
       const funcName = func.toString();
       const funcMetadata = apiImpl[funcName];
-      const axiosConfig: AxiosRequestConfig = Object.assign({}, options.axiosConfig);
+      const fetchConfig: RequestInit = Object.assign({}, options.fetchOptions);
       const isStream = checkPlug(funcMetadata, PLUGS.streamResponse);
-      if (isStream) {
-        axiosConfig.responseType = 'stream';
-      }
 
       apiImpl[funcName] = async function (...args: any[]) {
-        axiosConfig.headers = await options.__init_header();
+        fetchConfig.headers = await options.__init_header();
 
         if (checkPlug(funcMetadata, PLUGS.withAuthorization) || checkPlug(apiImpl, PLUGS.withAuthorization)) {
           if (options.__token) {
-            axiosConfig.headers.Authorization = options.__token;
+            fetchConfig.headers.Authorization = options.__token;
           } else console.error('Log in first');
         }
 
         const customHeaders = checkPlug(funcMetadata, PLUGS.customHeaders);
         if (customHeaders) {
-          Object.assign(axiosConfig.headers, customHeaders);
+          Object.assign(fetchConfig.headers, customHeaders);
         }
 
-        const requestBody = checkPlug(funcMetadata, PLUGS.customRequestBody) ? args[0] : { args };
+        const isCustomBody = checkPlug(funcMetadata, PLUGS.customRequestBody);
+        const requestBody = isCustomBody ? args[0] : { args: isStream ? args.slice(0, args.length - 1) : args };
+
         try {
           const url = [URL, RESI_ROUTE, apiName, funcName].join('/');
-          const res = await axios.post(url, requestBody, axiosConfig);
+          const res = await fetch(url, { method: 'POST', body: JSON.stringify(requestBody), ...fetchConfig });
           return isStream ? options.streamHandler(res, args[args.length - 1]) : options.responseHandler(res);
         } catch (error) {
           return options.errorHandler(error);

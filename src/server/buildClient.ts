@@ -39,7 +39,10 @@ function buildAPIFile(resiAPIImplementation: ResiAPIImplementation, apiFile: str
   let content = fs.readFileSync(apiFile).toString();
   content = stripImports(content);
 
-  const parse: acorn.Node & { body: any[] } = Parser.parse(content, { sourceType: 'module' }) as acorn.Node & {
+  const parse: acorn.Node & { body: any[] } = Parser.parse(content, {
+    sourceType: 'module',
+    ecmaVersion: 'latest',
+  }) as acorn.Node & {
     body: any[];
   };
 

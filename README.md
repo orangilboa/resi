@@ -35,6 +35,28 @@ or
 
 `yarn add axios @react-native-async-storage/async-storage`
 
+!! NOTE FOR REACT-NATIVE: you must set the inlineRequires option in metro.config.js to false.
+
+```javascript
+/**
+ * Metro configuration for React Native
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ */
+
+module.exports = {
+  transformer: {
+    getTransformOptions: async () => ({
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: false, // <-- CHANGE TO false
+      },
+    }),
+  },
+};
+```
+
 # Server side usage
 
 1. Create 2 folders, one for your api files (the actual functions) and one for your models.

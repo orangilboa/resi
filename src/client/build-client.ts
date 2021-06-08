@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import axios from 'axios';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { defaultOptions } from '.';
@@ -16,7 +15,7 @@ export async function buildClient(url: string, resiDir: string) {
   const modelsDir = path.join(resiDir, MODELS_DIRECTORY);
   const apisDir = path.join(resiDir, API_DIRECTORY);
   const [res] = await Promise.all([
-    axios.post(requestUrl, {}, { responseType: 'stream' }),
+    fetch(requestUrl),
     fs.rmdir(modelsDir, { recursive: true }),
     fs.rmdir(apisDir, { recursive: true }),
   ]);
@@ -26,7 +25,7 @@ export async function buildClient(url: string, resiDir: string) {
   const createFilePromises: Promise<void>[] = [];
   const apis: APIFile[] = [];
   return defaultOptions
-    .streamHandler(res, (cfm: Buffer) => {
+    .streamHandler(res, (cfm: Uint8Array) => {
       const parsed = JSON.parse(cfm.toString());
       createFilePromises.push(handleCreateFileMessage(modelsDir, apisDir, parsed, apis));
     })
